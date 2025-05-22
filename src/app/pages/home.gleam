@@ -31,6 +31,7 @@ pub fn todo_item(item: db.Todo) -> Element(t) {
   let completed_class: String = {
     case item.completed {
       1 -> "todo--completed"
+      0 -> "todo--not-completed"
       _ -> ""
     }
   }
@@ -51,7 +52,7 @@ pub fn todo_item(item: db.Todo) -> Element(t) {
 
 pub fn todos_list(todos: List(db.Todo)) -> Element(t) {
   div([class("todos")], [
-    h1([], [text("Todo List")]),
+    h1([], [text("Todos List")]),
     div([class("todos__inner")], [
       div(
         [class("todos__list")],
