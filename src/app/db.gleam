@@ -1,4 +1,6 @@
 import gleam/dynamic/decode
+import gleam/int
+import gleam/list
 import sqlight
 import wisp
 
@@ -15,17 +17,16 @@ fn todo_decoder() -> decode.Decoder(Todo) {
   }
 }
 
-fn db_directory() {
+fn db_directory() -> String {
   let assert Ok(priv_directory) = wisp.priv_directory("app")
-  echo "Private directory: " <> priv_directory
   priv_directory <> "/data/"
 }
 
-fn open_db_conn() {
+pub fn open_db_conn() -> Result(sqlight.Connection, sqlight.Error) {
   let db_conn = sqlight.open(db_directory() <> "app.db")
   case db_conn {
     Ok(conn) -> {
-      echo "Database connection established."
+      echo "Database opened successfully."
       Ok(conn)
     }
     Error(err) -> {
@@ -46,11 +47,13 @@ pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
 
   case todos {
     Ok(results) -> {
-      echo "Retrieved todos successfully."
+      wisp.log_info(
+        "Retrieved " <> int.to_string(list.length(results)) <> " todos.",
+      )
       Ok(results)
     }
     Error(error) -> {
-      echo "Error retrieving todos: " <> error.message
+      wisp.log_error("Error retrieving todos: " <> error.message)
       Error(error)
     }
   }
