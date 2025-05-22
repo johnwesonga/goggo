@@ -1,12 +1,12 @@
 # goggo
 
-Wisp + Lustre + sqlite running on Gleam
+A very basic Todos List implementation on Wisp + Lustre + sqlite on Gleam.
 
-Further documentation can be found at <https://hexdocs.pm/goggo>.
+
 
 ## Development
 
 ```sh
-gleam run   # Run the project
+gleam run -m olive    # Run the project
 gleam test  # Run the tests
 ```
