@@ -1,8 +1,6 @@
-import app/db
-import gleam/list
 import lustre/attribute.{class}
 import lustre/element.{type Element, text}
-import lustre/element/html.{div, h1}
+import lustre/element/html.{div, h1, h3, p}
 
 pub fn root() -> Element(t) {
   h1([], [text("Homepage")])
@@ -23,46 +21,10 @@ pub fn layout(elements: List(Element(t))) -> Element(t) {
         ),
       ]),
     ]),
-    html.body([], elements),
-  ])
-}
-
-pub fn todo_item(item: db.Todo) -> Element(t) {
-  let completed_class: String = {
-    case item.completed {
-      1 -> "todo--completed"
-      0 -> "todo--not-completed"
-      _ -> ""
-    }
-  }
-  let completed_value: String = {
-    case item.completed {
-      1 -> "true"
-      _ -> "false"
-    }
-  }
-
-  div([class("todo " <> completed_class)], [
-    div([class("todo__inner")], [
-      div([class("todo__title")], [text(item.title)]),
-      div([class("todo__completed")], [text("Completed: " <> completed_value)]),
-    ]),
-  ])
-}
-
-pub fn todos_list(todos: List(db.Todo)) -> Element(t) {
-  div([class("todos")], [
-    h1([], [text("Todos List")]),
-    div([class("todos__inner")], [
-      div(
-        [class("todos__list")],
-        todos
-          |> list.map(todo_item),
-      ),
-    ]),
+    html.body([], [div([class("container")], elements)]),
   ])
 }
 
 pub fn error_page(message: String) -> Element(t) {
-  div([class("error")], [h1([], [text(message)])])
+  div([class("alert alert-danger")], [p([], [text(message)])])
 }
