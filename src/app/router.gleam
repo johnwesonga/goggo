@@ -2,6 +2,7 @@ import app/db
 import app/pages/home
 import app/pages/todos_page
 import app/web
+import gleam/http
 import lustre/element
 import wisp.{type Request, type Response}
 
@@ -23,6 +24,7 @@ pub fn handle_request(req: Request) -> Response {
 
     ["todos"] -> {
       let todos_result = db.get_todos()
+
       case todos_result {
         Ok(todos) -> {
           render_page([todos_page.todos_table(todos)])
@@ -36,6 +38,7 @@ pub fn handle_request(req: Request) -> Response {
       }
     }
     ["todos", "add"] -> {
+      use <- wisp.require_method(req, http.Post)
       // Here you would handle adding a new todo item.
       // For now, we just return a placeholder response.
       [home.error_page("Add Todo functionality is not implemented yet.")]
@@ -68,6 +71,12 @@ pub fn handle_request(req: Request) -> Response {
       |> element.to_document_string_tree
       |> wisp.html_response(501)
     }
+
+    ["internal-server-error"] -> wisp.internal_server_error()
+    ["unprocessable-entity"] -> wisp.unprocessable_entity()
+    ["method-not-allowed"] -> wisp.method_not_allowed([])
+    ["entity-too-large"] -> wisp.entity_too_large()
+    ["bad-request"] -> wisp.bad_request()
 
     _ -> {
       [home.error_page("Page not found")]
