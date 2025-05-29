@@ -11,7 +11,7 @@ pub fn main() {
     wisp_mist.handler(router.handle_request, secret_key)
     |> mist.new
     |> mist.bind("0.0.0.0")
-    |> mist.port(8000)
+    |> mist.port(8080)
     |> mist.start_http()
 
   // Start the web server

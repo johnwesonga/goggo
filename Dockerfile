@@ -1,9 +1,10 @@
-FROM erlang:27.1.1.0-alpine AS build
-COPY --from=ghcr.io/gleam-lang/gleam:v1.8.0-erlang-alpine /bin/gleam /bin/gleam
+FROM erlang:28.0.0.0-alpine AS build
+RUN apk add --no-cache build-base
+COPY --from=ghcr.io/gleam-lang/gleam:v1.9.0-erlang-alpine /bin/gleam /bin/gleam
 COPY . /app/
 RUN cd /app && gleam export erlang-shipment
 
-FROM erlang:27.1.1.0-alpine
+FROM erlang:28.0.0.0-alpine
 RUN \
     addgroup --system webapp && \
     adduser --system webapp -g webapp
