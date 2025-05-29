@@ -49,18 +49,25 @@ pub fn todos_table(todos: List(db.Todo)) -> Element(t) {
 }
 
 pub fn todos_input_form() -> Element(t) {
-  html.form([class("todo-form")], [
-    html.div([class("mb-3")], [
-      html.label([class("form-label"), attribute.for("todo-title")], [
-        text("Todo Title"),
+  html.form(
+    [
+      class("todo-form"),
+      attribute.method("POST"),
+      attribute.action("/todos/add"),
+    ],
+    [
+      html.div([class("mb-3")], [
+        html.label([class("form-label"), attribute.for("todo-title")], [
+          text("Todo Title"),
+        ]),
+        html.input([
+          class("form-control"),
+          attribute.type_("text"),
+          attribute.id("todo-title"),
+          attribute.placeholder("Enter todo title"),
+        ]),
       ]),
-      html.input([
-        class("form-control"),
-        attribute.type_("text"),
-        attribute.id("todo-title"),
-        attribute.placeholder("Enter todo title"),
-      ]),
-    ]),
-    html.button([class("btn btn-primary")], [text("Add Todo")]),
-  ])
+      html.button([class("btn btn-primary")], [text("Add Todo")]),
+    ],
+  )
 }
