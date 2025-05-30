@@ -64,6 +64,7 @@ pub fn todos_input_form() -> Element(t) {
           class("form-control"),
           attribute.type_("text"),
           attribute.id("todo-title"),
+          attribute.name("todo-title"),
           attribute.placeholder("Enter todo title"),
         ]),
       ]),

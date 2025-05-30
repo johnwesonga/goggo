@@ -1,4 +1,9 @@
+import app/db
 import wisp
+
+pub type Context {
+  Context(todos: List(db.Todo))
+}
 
 pub fn middleware(
   req: wisp.Request,

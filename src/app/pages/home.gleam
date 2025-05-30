@@ -1,6 +1,6 @@
 import lustre/attribute.{class}
 import lustre/element.{type Element, text}
-import lustre/element/html.{div, h1, h3, p}
+import lustre/element/html.{div, h1, p}
 
 pub fn root() -> Element(t) {
   h1([], [text("Homepage")])

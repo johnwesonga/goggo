@@ -26,7 +26,7 @@ pub fn open_db_conn() -> Result(sqlight.Connection, sqlight.Error) {
   let db_conn = sqlight.open(db_directory() <> "app.db")
   case db_conn {
     Ok(conn) -> {
-      echo "Database opened successfully."
+      echo "Database opened successfully at " <> db_directory()
       Ok(conn)
     }
     Error(err) -> {
@@ -39,7 +39,7 @@ pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
   let assert Ok(conn) = open_db_conn()
   let todos =
     sqlight.query(
-      "SELECT * FROM todos",
+      "SELECT * FROM todos ORDER BY id DESC",
       on: conn,
       with: [],
       expecting: todo_decoder(),
