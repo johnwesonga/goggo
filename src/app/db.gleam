@@ -58,3 +58,25 @@ pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
     }
   }
 }
+
+pub fn get_todo(id: String) -> Result(List(Todo), sqlight.Error) {
+  let assert Ok(conn) = open_db_conn()
+  let sql = "SELECT * FROM todos WHERE id = " <> id
+  wisp.log_info("Querying for todo with ID: " <> id <> " SQL: " <> sql)
+  // Ensure the ID is a valid integer
+  let todo_item =
+    sqlight.query(sql, on: conn, with: [], expecting: todo_decoder())
+
+  case todo_item {
+    Ok(result) -> {
+      wisp.log_info(
+        "Retrieved " <> int.to_string(list.length(result)) <> " todo.",
+      )
+      Ok(result)
+    }
+    Error(error) -> {
+      wisp.log_error("Error retrieving todos: " <> error.message)
+      Error(error)
+    }
+  }
+}

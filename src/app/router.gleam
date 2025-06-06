@@ -4,6 +4,9 @@ import app/pages/todos_page
 import app/routes/todos_routes.{post_create_todo}
 import app/web
 import gleam/http
+
+import gleam/list
+
 import lustre/element
 import wisp.{type Request, type Response}
 
@@ -22,7 +25,8 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
 
   case wisp.path_segments(req) {
     [] -> {
-      render_page([home.root()])
+      wisp.redirect("/todos")
+      //render_page([home.root()])
     }
 
     ["todos"] -> {
@@ -42,25 +46,38 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
     }
     ["todos", "add"] -> {
       use <- wisp.require_method(req, http.Post)
-      // Here you would handle adding a new todo item.
-      // For now, we just return a placeholder response.
+
       post_create_todo(req, ctx)
-      // [home.error_page("Add Todo functionality is not implemented yet.")]
-      // |> home.layout
-      // |> element.to_document_string_tree
-      // |> wisp.html_response(501)
     }
     ["todos", "edit", id] -> {
       // Here you would handle editing a todo item by its ID.
       // For now, we just return a placeholder response.
-      [
-        home.error_page(
-          "Edit Todo functionality is not implemented yet for ID: " <> id,
-        ),
-      ]
-      |> home.layout
-      |> element.to_document_string_tree
-      |> wisp.html_response(501)
+      let todo_result = db.get_todo(id)
+      case todo_result {
+        Ok(todo_result) -> {
+          let todo_item = list.first(todo_result)
+          case todo_item {
+            Ok(todo_item) -> {
+              [todos_page.todo_edit_form(todo_item)]
+              |> home.layout
+              |> element.to_document_string_tree
+              |> wisp.html_response(200)
+            }
+            Error(_err) -> {
+              [home.error_page("Todo with ID " <> id <> " not found.")]
+              |> home.layout
+              |> element.to_document_string_tree
+              |> wisp.html_response(404)
+            }
+          }
+        }
+        Error(err) -> {
+          [home.error_page("Error fetching todo: " <> err.message)]
+          |> home.layout
+          |> element.to_document_string_tree
+          |> wisp.html_response(500)
+        }
+      }
     }
 
     ["todos", "delete", id] -> {

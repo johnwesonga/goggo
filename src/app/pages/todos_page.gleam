@@ -23,6 +23,24 @@ pub fn todos_table_item(item: db.Todo) -> Element(t) {
     html.td([], [text(int.to_string(item.id))]),
     html.td([], [text(item.title)]),
     html.td([], [text(completed_value)]),
+    html.td([], [
+      html.a(
+        [
+          class("btn btn-sm btn-primary"),
+          attribute.href("/todos/edit/" <> int.to_string(item.id)),
+        ],
+        [text("Edit")],
+      ),
+    ]),
+    html.td([], [
+      html.a(
+        [
+          class("btn btn-sm btn-danger"),
+          attribute.href("/todos/delete/" <> int.to_string(item.id)),
+        ],
+        [text("Delete")],
+      ),
+    ]),
   ])
 }
 
@@ -37,6 +55,8 @@ pub fn todos_table(todos: List(db.Todo)) -> Element(t) {
           html.th([class("col")], [text("ID")]),
           html.th([class("col")], [text("Title")]),
           html.th([class("col")], [text("Completed")]),
+          html.th([class("col")], []),
+          html.th([class("col")], []),
         ]),
       ]),
       html.tbody(
@@ -71,4 +91,38 @@ pub fn todos_input_form() -> Element(t) {
       html.button([class("btn btn-primary")], [text("Add Todo")]),
     ],
   )
+}
+
+pub fn todo_edit_form(todo_item: db.Todo) -> Element(t) {
+  div([class("todos-table")], [
+    html.h2([], [text("Edit Todo: " <> todo_item.title)]),
+    html.form(
+      [
+        class("todo-form"),
+        attribute.method("POST"),
+        attribute.action("/todos/edit/" <> int.to_string(todo_item.id)),
+      ],
+      [
+        html.div([class("mb-3")], [
+          html.label([class("form-label"), attribute.for("todo-title")], [
+            text("Todo Title"),
+          ]),
+          html.input([
+            class("form-control"),
+            attribute.type_("text"),
+            attribute.id("todo-title"),
+            attribute.name("todo-title"),
+            attribute.value(todo_item.title),
+          ]),
+        ]),
+        html.button([class("btn btn-primary")], [text("Update Todo")]),
+      ],
+    ),
+    html.br([]),
+    // Add a link to go back to the todos list
+    html.a([class("btn btn-secondary"), attribute.href("/todos")], [
+      text("Back to Todos List"),
+    ]),
+    html.br([]),
+  ])
 }

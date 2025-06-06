@@ -6,6 +6,11 @@ import gleam/string
 import sqlight
 import wisp.{type Request, type Response}
 
+pub fn edit_create_todo(req: Request, _ctx: web.Context) -> Response {
+  // This function is not implemented yet.
+  wisp.not_found()
+}
+
 pub fn post_create_todo(req: Request, _ctx: web.Context) -> Response {
   use form <- wisp.require_form(req)
   list.map(form.values, fn(pair) {
