@@ -94,7 +94,7 @@ pub fn todos_input_form() -> Element(t) {
 }
 
 pub fn todo_edit_form(todo_item: db.Todo) -> Element(t) {
-  div([class("todos-table")], [
+  div([class("edit-todos-form")], [
     html.h2([], [text("Edit Todo: " <> todo_item.title)]),
     html.form(
       [
