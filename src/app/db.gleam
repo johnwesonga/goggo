@@ -1,6 +1,7 @@
 import gleam/dynamic/decode
 import gleam/int
 import gleam/list
+
 import sqlight
 import wisp
 
@@ -35,6 +36,14 @@ pub fn open_db_conn() -> Result(sqlight.Connection, sqlight.Error) {
   }
 }
 
+/// Retrieves all todo items from the database, ordered by ID in descending order.
+///
+/// # Returns
+/// A `Result` containing a list of all todo items or a database error.
+///
+/// # Logs
+/// - Logs the number of retrieved todo items.
+/// - Logs any errors encountered during the database query.
 pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
   let assert Ok(conn) = open_db_conn()
   let todos =
@@ -59,13 +68,29 @@ pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
   }
 }
 
+/// Retrieves a specific todo item by its ID from the database.
+///
+/// # Arguments
+/// - `id`: A string representation of the todo item's ID.
+///
+/// # Returns
+/// A `Result` containing a list of matching todo items or a database error.
+///
+/// # Logs
+/// - Logs the SQL query and the number of retrieved todo items.
+/// - Logs any errors encountered during the database query.
 pub fn get_todo(id: String) -> Result(List(Todo), sqlight.Error) {
   let assert Ok(conn) = open_db_conn()
-  let sql = "SELECT * FROM todos WHERE id = " <> id
+  let sql = "SELECT * FROM todos WHERE id = ? ORDER BY id DESC"
   wisp.log_info("Querying for todo with ID: " <> id <> " SQL: " <> sql)
   // Ensure the ID is a valid integer
   let todo_item =
-    sqlight.query(sql, on: conn, with: [], expecting: todo_decoder())
+    sqlight.query(
+      sql,
+      on: conn,
+      with: [sqlight.text(id)],
+      expecting: todo_decoder(),
+    )
 
   case todo_item {
     Ok(result) -> {
@@ -79,4 +104,111 @@ pub fn get_todo(id: String) -> Result(List(Todo), sqlight.Error) {
       Error(error)
     }
   }
+}
+
+/// Deletes a specific todo item by its ID from the database.
+///
+/// # Arguments
+/// - `id`: A string representation of the todo item's ID to delete.
+///
+/// # Returns
+/// A `Result` containing the number of affected rows or a database error.
+///
+/// # Logs
+/// - Logs the deletion attempt with the todo ID.
+/// - Logs successful deletion with the number of affected rows.
+/// - Logs any errors encountered during the database operation.
+pub fn delete_todo(id: String) -> Result(Int, sqlight.Error) {
+  let assert Ok(conn) = open_db_conn()
+  let sql = "DELETE FROM todos WHERE id = ? RETURNING id"
+  // Use parameterized query to prevent SQL injection
+  wisp.log_info("Attempting to delete todo with ID: " <> id)
+
+  let item =
+    sqlight.query(
+      sql,
+      on: conn,
+      with: [sqlight.text(id)],
+      expecting: decode.list(decode.int),
+      // Expecting a list of IDs
+    // We don't need to return the deleted item
+    )
+    |> echo
+
+  case item {
+    Ok([]) -> {
+      echo "Todo with ID " <> id <> " not found"
+      Ok(0)
+    }
+    Ok(_) -> {
+      echo "Todo with ID " <> id <> " deleted successfully."
+      Ok(1)
+    }
+    Error(error) -> {
+      echo "Error deleting todo with ID " <> id <> ": " <> error.message
+
+      Error(error)
+    }
+  }
+}
+
+/// Adds a new todo item to the database with the given title.
+/// # Arguments
+/// - `title`: The title of the todo item to add.
+/// # Returns
+/// A `Result` containing the number of affected rows (1 for success) or a database error.
+/// # Logs
+/// - Logs the addition of the todo item with its title.
+/// - Logs any errors encountered during the database operation.
+/// # Example
+/// ```gleam
+/// let result = db.add_todo("Buy groceries")
+/// case result {
+///   Ok(rows) -> wisp.log_info("Added todo, rows affected: " <> int.to_string(rows))
+///   Error(err) -> wisp.log_error("Failed to add todo: " <> err.message)
+/// }
+/// ```
+pub fn add_todo(title: String) -> Result(Int, sqlight.Error) {
+  let assert Ok(conn) = open_db_conn()
+  let sql = "INSERT INTO todos (title, completed) VALUES (?, 0)"
+  wisp.log_info("Adding todo with title: " <> title)
+
+  let result =
+    sqlight.query(
+      sql,
+      conn,
+      [sqlight.text(title)],
+      expecting: decode.list(decode.int),
+    )
+
+  case result {
+    Ok(_) -> {
+      wisp.log_info("Todo added successfully.")
+      Ok(1)
+      // Return 1 to indicate one row affected
+    }
+    Error(error) -> {
+      wisp.log_error("Error adding todo: " <> error.message)
+      Error(error)
+    }
+  }
+}
+
+/// Initializes the database by creating the necessary tables if they do not exist.
+/// # Returns
+/// A `Result` indicating success or failure of the initialization.
+pub fn init_db() -> Result(Nil, sqlight.Error) {
+  let assert Ok(conn) = open_db_conn()
+  let sql =
+    "
+    CREATE TABLE IF NOT EXISTS todos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      completed INTEGER DEFAULT 0
+    );
+  "
+
+  wisp.log_info("Initializing database and creating todos table if needed.")
+  let _exec = sqlight.exec(sql, conn)
+  Ok(Nil)
 }

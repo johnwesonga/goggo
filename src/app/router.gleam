@@ -1,7 +1,7 @@
 import app/db
 import app/pages/home
 import app/pages/todos_page
-import app/routes/todos_routes.{post_create_todo}
+import app/routes/todos_routes.{delete_todo_route, post_create_todo}
 import app/web
 import gleam/http
 
@@ -82,15 +82,7 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
 
     ["todos", "delete", id] -> {
       // Here you would handle deleting a todo item by its ID.
-      // For now, we just return a placeholder response.
-      [
-        home.error_page(
-          "Delete Todo functionality is not implemented yet for ID: " <> id,
-        ),
-      ]
-      |> home.layout
-      |> element.to_document_string_tree
-      |> wisp.html_response(501)
+      delete_todo_route(req, ctx, id)
     }
 
     ["internal-server-error"] -> wisp.internal_server_error()
