@@ -42,7 +42,11 @@ pub fn edit_todo(_req: Request, _ctx: web.Context, id: String) -> Response {
           |> element.to_document_string_tree
           |> wisp.html_response(200)
         }
-        Error(_) -> wisp.not_found()
+        Error(_) ->
+          [home.error_page("Todo with ID " <> id <> " not found.")]
+          |> home.layout
+          |> element.to_document_string_tree
+          |> wisp.html_response(404)
       }
     }
     Error(_) ->

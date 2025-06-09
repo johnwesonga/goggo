@@ -115,6 +115,22 @@ pub fn todo_edit_form(todo_item: db.Todo) -> Element(t) {
             attribute.value(todo_item.title),
           ]),
         ]),
+        html.div([class("mb-3")], [
+          html.label(
+            [class("form-check-label"), attribute.for("todo-completed")],
+            [text("Completed")],
+          ),
+          html.br([]),
+          html.input([
+            class("form-check-input"),
+            attribute.type_("checkbox"),
+            attribute.id("todo-completed"),
+            attribute.name("todo-completed"),
+            // If completed is 1, set the checkbox to checked
+            attribute.checked(todo_item.completed == 1),
+            // If completed is 1, set the value to "1", otherwise "0"
+          ]),
+        ]),
         html.button([class("btn btn-primary")], [text("Update Todo")]),
       ],
     ),

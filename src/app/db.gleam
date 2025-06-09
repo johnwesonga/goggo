@@ -93,12 +93,18 @@ pub fn get_todo(id: String) -> Result(List(Todo), sqlight.Error) {
     )
 
   case todo_item {
+    // If no todo is found, return an empty list
+    Ok([]) -> {
+      wisp.log_info("No todo found with ID: " <> id)
+      Ok([])
+    }
     Ok(result) -> {
       wisp.log_info(
         "Retrieved " <> int.to_string(list.length(result)) <> " todo.",
       )
       Ok(result)
     }
+
     Error(error) -> {
       wisp.log_error("Error retrieving todos: " <> error.message)
       Error(error)
