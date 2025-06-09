@@ -1,13 +1,57 @@
 import app/db
+import app/pages/home
+import app/pages/todos_page
 import app/web
 import gleam/list
 import gleam/result
 import gleam/string
+import lustre/element
 import wisp.{type Request, type Response}
 
-pub fn edit_create_todo(_req: Request, _ctx: web.Context) -> Response {
+pub fn fetch_todos() -> Response {
+  let todos_result = db.get_todos()
+  case todos_result {
+    Ok(todos) -> {
+      // Render the todos page with the fetched todos
+      [todos_page.todos_table(todos)]
+      |> home.layout
+      |> element.to_document_string_tree
+      |> wisp.html_response(200)
+    }
+    Error(err) -> {
+      // Handle the error when fetching todos
+      [home.error_page("Error fetching todos: " <> err.message)]
+      |> home.layout
+      |> element.to_document_string_tree
+      |> wisp.html_response(500)
+    }
+  }
+}
+
+pub fn edit_todo(_req: Request, _ctx: web.Context, id: String) -> Response {
   // This function is not implemented yet.
-  wisp.not_found()
+  let todo_result = db.get_todo(id)
+  case todo_result {
+    Ok(todo_result) -> {
+      let todo_item = list.first(todo_result)
+      case todo_item {
+        Ok(item) -> {
+          // Render the edit form for the todo item
+          [todos_page.todo_edit_form(item)]
+          |> home.layout
+          |> element.to_document_string_tree
+          |> wisp.html_response(200)
+        }
+        Error(_) -> wisp.not_found()
+      }
+    }
+    Error(_) ->
+      // Handle the error when fetching the todo item
+      [home.error_page("Todo with ID " <> id <> " not found.")]
+      |> home.layout
+      |> element.to_document_string_tree
+      |> wisp.html_response(404)
+  }
 }
 
 pub fn post_create_todo(req: Request, _ctx: web.Context) -> Response {
