@@ -9,7 +9,8 @@ import lustre/element
 import wisp.{type Request, type Response}
 
 pub fn fetch_todos() -> Response {
-  let todos_result = db.get_todos()
+  let assert Ok(conn) = db.open_db_conn()
+  let todos_result = db.get_todos(conn)
   case todos_result {
     Ok(todos) -> {
       // Render the todos page with the fetched todos
@@ -29,8 +30,8 @@ pub fn fetch_todos() -> Response {
 }
 
 pub fn edit_todo(_req: Request, _ctx: web.Context, id: String) -> Response {
-  // This function is not implemented yet.
-  let todo_result = db.get_todo(id)
+  let assert Ok(conn) = db.open_db_conn()
+  let todo_result = db.get_todo(conn, id)
   case todo_result {
     Ok(todo_result) -> {
       let todo_item = list.first(todo_result)

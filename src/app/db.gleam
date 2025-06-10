@@ -36,6 +36,20 @@ pub fn open_db_conn() -> Result(sqlight.Connection, sqlight.Error) {
   }
 }
 
+pub fn close_db_conn(conn: sqlight.Connection) -> Result(Nil, sqlight.Error) {
+  let close_result = sqlight.close(conn)
+  case close_result {
+    Ok(_) -> {
+      echo "Database connection closed successfully."
+      Ok(Nil)
+    }
+    Error(err) -> {
+      echo "Error closing database connection: " <> err.message
+      Error(err)
+    }
+  }
+}
+
 /// Retrieves all todo items from the database, ordered by ID in descending order.
 ///
 /// # Returns
@@ -44,7 +58,7 @@ pub fn open_db_conn() -> Result(sqlight.Connection, sqlight.Error) {
 /// # Logs
 /// - Logs the number of retrieved todo items.
 /// - Logs any errors encountered during the database query.
-pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
+pub fn get_todos_old() -> Result(List(Todo), sqlight.Error) {
   let assert Ok(conn) = open_db_conn()
   let todos =
     sqlight.query(
@@ -55,10 +69,44 @@ pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
     )
 
   case todos {
+    // If no todos are found, return an empty list
+    Ok([]) -> {
+      wisp.log_info("No todos found in the database.")
+      Ok([])
+    }
     Ok(results) -> {
       wisp.log_info(
         "Retrieved " <> int.to_string(list.length(results)) <> " todos.",
       )
+      Ok(results)
+    }
+    Error(error) -> {
+      wisp.log_error("Error retrieving todos: " <> error.message)
+      Error(error)
+    }
+  }
+}
+
+pub fn get_todos(conn: sqlight.Connection) -> Result(List(Todo), sqlight.Error) {
+  let todos =
+    sqlight.query(
+      "SELECT * FROM todos ORDER BY id DESC",
+      on: conn,
+      with: [],
+      expecting: todo_decoder(),
+    )
+
+  case todos {
+    // If no todos are found, return an empty list
+    Ok([]) -> {
+      wisp.log_info("No todos found in the database.")
+      Ok([])
+    }
+    Ok(results) -> {
+      wisp.log_info(
+        "Retrieved " <> int.to_string(list.length(results)) <> " todos.",
+      )
+      //  let assert Ok(_) = close_db_conn(conn)
       Ok(results)
     }
     Error(error) -> {
@@ -79,8 +127,10 @@ pub fn get_todos() -> Result(List(Todo), sqlight.Error) {
 /// # Logs
 /// - Logs the SQL query and the number of retrieved todo items.
 /// - Logs any errors encountered during the database query.
-pub fn get_todo(id: String) -> Result(List(Todo), sqlight.Error) {
-  let assert Ok(conn) = open_db_conn()
+pub fn get_todo(
+  conn: sqlight.Connection,
+  id: String,
+) -> Result(List(Todo), sqlight.Error) {
   let sql = "SELECT * FROM todos WHERE id = ? ORDER BY id DESC"
   wisp.log_info("Querying for todo with ID: " <> id <> " SQL: " <> sql)
   // Ensure the ID is a valid integer
@@ -203,8 +253,8 @@ pub fn add_todo(title: String) -> Result(Int, sqlight.Error) {
 /// Initializes the database by creating the necessary tables if they do not exist.
 /// # Returns
 /// A `Result` indicating success or failure of the initialization.
-pub fn init_db() -> Result(Nil, sqlight.Error) {
-  let assert Ok(conn) = open_db_conn()
+pub fn init_db(conn: sqlight.Connection) -> Result(Nil, sqlight.Error) {
+  //let assert Ok(conn) = open_db_conn()
   let sql =
     "
     CREATE TABLE IF NOT EXISTS todos (
@@ -215,6 +265,41 @@ pub fn init_db() -> Result(Nil, sqlight.Error) {
   "
 
   wisp.log_info("Initializing database and creating todos table if needed.")
-  let _exec = sqlight.exec(sql, conn)
+  let assert Ok(_) = sqlight.exec(sql, conn)
+}
+
+// seed the database with some initial data
+pub fn seed_db(
+  conn: sqlight.Connection,
+  seed_data: List(Todo),
+) -> Result(Nil, sqlight.Error) {
+  wisp.log_info("Seeding database with initial todo items.")
+  let sql = "INSERT INTO todos (id, title, completed) VALUES (?, ?, ?)"
+  // Use parameterized query to prevent SQL injection
+  // Iterate over the list of todos and insert each one into the database 
+  seed_data
+  |> list.each(fn(item) {
+    echo "Seeding todo: " <> item.title
+    let result =
+      sqlight.query(
+        sql,
+        conn,
+        [
+          sqlight.int(item.id),
+          sqlight.text(item.title),
+          sqlight.int(item.completed),
+        ],
+        expecting: decode.list(decode.int),
+      )
+    case result {
+      Ok(_) -> {
+        echo "Todo seeded successfully: " <> item.title
+      }
+      Error(_) -> {
+        echo "Error seeding todo: " <> item.title
+      }
+    }
+  })
+
   Ok(Nil)
 }
