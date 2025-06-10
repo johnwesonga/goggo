@@ -119,6 +119,7 @@ pub fn get_todos(conn: sqlight.Connection) -> Result(List(Todo), sqlight.Error) 
 /// Retrieves a specific todo item by its ID from the database.
 ///
 /// # Arguments
+/// - `conn`: A sqlite connection object.
 /// - `id`: A string representation of the todo item's ID.
 ///
 /// # Returns
