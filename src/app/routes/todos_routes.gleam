@@ -60,6 +60,7 @@ pub fn edit_todo(_req: Request, _ctx: web.Context, id: String) -> Response {
 }
 
 pub fn post_create_todo(req: Request, _ctx: web.Context) -> Response {
+  // let assert Ok(conn) = db.open_db_conn()
   use form <- wisp.require_form(req)
   list.map(form.values, fn(pair) {
     let #(name, value) = pair
@@ -101,7 +102,8 @@ pub fn delete_todo_route(
   id: String,
 ) -> Response {
   wisp.log_info("Deleting todo with ID: " <> id)
-  let result = db.delete_todo(id)
+  let assert Ok(conn) = db.open_db_conn()
+  let result = db.delete_todo(conn, id)
   case result {
     Ok(_) -> {
       wisp.redirect("/todos")

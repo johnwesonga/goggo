@@ -95,7 +95,8 @@ pub fn get_todos(conn: sqlight.Connection) -> Result(List(Todo), sqlight.Error) 
       with: [],
       expecting: todo_decoder(),
     )
-
+  // close the database connection after the operation
+  let assert Ok(_) = close_db_conn(conn)
   case todos {
     // If no todos are found, return an empty list
     Ok([]) -> {
@@ -142,7 +143,7 @@ pub fn get_todo(
       with: [sqlight.text(id)],
       expecting: todo_decoder(),
     )
-
+  //let assert Ok(_) = close_db_conn(conn)
   case todo_item {
     // If no todo is found, return an empty list
     Ok([]) -> {
@@ -175,8 +176,10 @@ pub fn get_todo(
 /// - Logs the deletion attempt with the todo ID.
 /// - Logs successful deletion with the number of affected rows.
 /// - Logs any errors encountered during the database operation.
-pub fn delete_todo(id: String) -> Result(Int, sqlight.Error) {
-  let assert Ok(conn) = open_db_conn()
+pub fn delete_todo(
+  conn: sqlight.Connection,
+  id: String,
+) -> Result(Int, sqlight.Error) {
   let sql = "DELETE FROM todos WHERE id = ? RETURNING id"
   // Use parameterized query to prevent SQL injection
   wisp.log_info("Attempting to delete todo with ID: " <> id)
@@ -187,10 +190,9 @@ pub fn delete_todo(id: String) -> Result(Int, sqlight.Error) {
       on: conn,
       with: [sqlight.text(id)],
       expecting: decode.list(decode.int),
-      // Expecting a list of IDs
-    // We don't need to return the deleted item
     )
     |> echo
+  let assert Ok(_) = close_db_conn(conn)
 
   case item {
     Ok([]) -> {

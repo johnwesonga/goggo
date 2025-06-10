@@ -15,8 +15,6 @@ const sample_todos = [
 ]
 
 pub fn init_db_test() {
-  // This is a placeholder for the actual test implementation.
-  // You would typically call the function you want to test and assert the expected outcome.
   use conn <- sqlight.with_connection(":memory:")
   let assert Ok(_) = db.init_db(conn)
   // Seed the database with initial data
@@ -27,14 +25,14 @@ pub fn init_db_test() {
 }
 
 pub fn fetch_todos_test() {
-  // This is a placeholder for the actual test implementation.
-  // You would typically call the function you want to test and assert the expected outcome.
   use conn <- sqlight.with_connection(":memory:")
   let assert Ok(_) = db.init_db(conn)
 
   // Seed the database with sample todos
   let assert Ok(_) = db.seed_db(conn, sample_todos)
   let todos = db.get_todos(conn)
+  // close the database connection after the operation
+
   case todos {
     Ok(results) -> {
       should.equal(list.length(results), list.length(sample_todos))
@@ -50,20 +48,10 @@ pub fn fetch_todos_test() {
       echo "Fetched todos: " <> list.length(results) |> int.to_string()
       should.equal(results, sample_todos)
     }
-    Error(err) -> {
+    Error(_err) -> {
       should.fail()
-
-      should.equal(
-        err,
-        sqlight.SqlightError(
-          sqlight.error_code_from_int(1),
-          "Database error",
-          -1,
-        ),
-      )
     }
   }
-  // db.close_db_conn(conn)
 }
 
 pub fn get_todo_test() {
@@ -107,6 +95,23 @@ pub fn get_todo_test() {
       <> err.message
     }
   }
+}
 
-  db.close_db_conn(conn)
+pub fn delete_todo_test() {
+  use conn <- sqlight.with_connection(":memory:")
+  let assert Ok(_) = db.init_db(conn)
+
+  // Seed the database with sample todos
+  let assert Ok(_) = db.seed_db(conn, sample_todos)
+
+  // Test deleting a todo
+  let delete_result = db.delete_todo(conn, "100")
+  case delete_result {
+    Ok(results) -> {
+      should.equal(results, 1)
+    }
+    Error(_err) -> {
+      should.fail()
+    }
+  }
 }
