@@ -7,9 +7,33 @@ import lustre/element/html.{div}
 
 import app/pages/home.{layout, root}
 
+fn btn(variant: String, href: String, label: String) -> Element(t) {
+  html.a([class("btn btn-sm " <> variant), attribute.href(href)], [text(label)])
+}
+
+fn form_field(label: String, input: Element(t)) -> Element(t) {
+  html.div([class("mb-3")], [
+    html.label([class("form-label")], [text(label)]),
+    input,
+  ])
+}
+
 pub fn layout_with_todos(todos: List(db.Todo)) -> Element(t) {
   let todos_content = todos_table(todos)
   layout([root(), todos_content])
+}
+
+/// Renders the table header for todos.
+fn todos_table_header() -> Element(t) {
+  html.thead([class("thead-dark")], [
+    html.tr([], [
+      html.th([class("col")], [text("ID")]),
+      html.th([class("col")], [text("Title")]),
+      html.th([class("col")], [text("Completed")]),
+      html.th([class("col")], []),
+      html.th([class("col")], []),
+    ]),
+  ])
 }
 
 pub fn todos_table_item(item: db.Todo) -> Element(t) {
@@ -24,22 +48,10 @@ pub fn todos_table_item(item: db.Todo) -> Element(t) {
     html.td([], [text(item.title)]),
     html.td([], [text(completed_value)]),
     html.td([], [
-      html.a(
-        [
-          class("btn btn-sm btn-primary"),
-          attribute.href("/todos/edit/" <> int.to_string(item.id)),
-        ],
-        [text("Edit")],
-      ),
+      btn("btn-primary", "/todos/edit/" <> int.to_string(item.id), "Edit"),
     ]),
     html.td([], [
-      html.a(
-        [
-          class("btn btn-sm btn-danger"),
-          attribute.href("/todos/delete/" <> int.to_string(item.id)),
-        ],
-        [text("Delete")],
-      ),
+      btn("btn-danger", "/todos/delete/" <> int.to_string(item.id), "Delete"),
     ]),
   ])
 }
@@ -50,15 +62,7 @@ pub fn todos_table(todos: List(db.Todo)) -> Element(t) {
   div([class("todos-table")], [
     div([class("todos_form")], [todos_input_form()]),
     html.table([class("table table-hover")], [
-      html.thead([class("thead-dark")], [
-        html.tr([], [
-          html.th([class("col")], [text("ID")]),
-          html.th([class("col")], [text("Title")]),
-          html.th([class("col")], [text("Completed")]),
-          html.th([class("col")], []),
-          html.th([class("col")], []),
-        ]),
-      ]),
+      todos_table_header(),
       html.tbody(
         [],
         todos
@@ -135,9 +139,7 @@ pub fn todo_edit_form(todo_item: db.Todo) -> Element(t) {
     ),
     html.br([]),
     // Add a link to go back to the todos list
-    html.a([class("btn btn-secondary"), attribute.href("/todos")], [
-      text("Back to Todos List"),
-    ]),
+    btn("btn-secondary", "/todos", "Back to Todos List"),
     html.br([]),
   ])
 }

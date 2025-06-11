@@ -2,7 +2,6 @@ import app/db
 import app/pages/home
 import app/pages/todos_page
 import app/web
-import gleam/int
 import gleam/list
 import gleam/result
 import gleam/string
