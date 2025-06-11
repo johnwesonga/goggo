@@ -1,6 +1,6 @@
 import app/pages/home
 import app/routes/todos_routes.{
-  delete_todo_route, edit_todo, fetch_todos, post_create_todo,
+  delete_todo_route, edit_todo, fetch_todos, post_create_todo, update_todo_route,
 }
 import app/web
 import gleam/http
@@ -39,6 +39,11 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
       // Here you would handle editing a todo item by its ID.
       // The edit_todo function is not implemented yet, so we will return a placeholder response.
       edit_todo(req, ctx, id)
+    }
+    // todos/update/{id}
+    ["todos", "update", id] -> {
+      use <- wisp.require_method(req, http.Post)
+      update_todo_route(req, ctx, id)
     }
     // todos/delete/{id}
     ["todos", "delete", id] -> {

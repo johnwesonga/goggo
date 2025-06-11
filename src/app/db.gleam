@@ -253,6 +253,34 @@ pub fn add_todo(title: String) -> Result(Int, sqlight.Error) {
   }
 }
 
+pub fn update_todo(
+  conn: sqlight.Connection,
+  id: String,
+  title: String,
+  completed: Int,
+) -> Result(Int, sqlight.Error) {
+  let sql = "UPDATE todos SET title = ?, completed = ? WHERE id = ?"
+  wisp.log_info("Updating todo with ID: " <> id <> " and title: " <> title)
+  let result =
+    sqlight.query(
+      sql,
+      conn,
+      [sqlight.text(title), sqlight.int(completed), sqlight.text(id)],
+      expecting: decode.list(decode.int),
+    )
+  let assert Ok(_) = close_db_conn(conn)
+  case result {
+    Ok(_) -> {
+      wisp.log_info("Todo updated successfully.")
+      Ok(1)
+    }
+    Error(error) -> {
+      wisp.log_error("Error updating todo: " <> error.message)
+      Error(error)
+    }
+  }
+}
+
 /// Initializes the database by creating the necessary tables if they do not exist.
 /// # Returns
 /// A `Result` indicating success or failure of the initialization.

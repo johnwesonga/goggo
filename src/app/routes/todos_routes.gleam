@@ -2,6 +2,7 @@ import app/db
 import app/pages/home
 import app/pages/todos_page
 import app/web
+import gleam/int
 import gleam/list
 import gleam/result
 import gleam/string
@@ -59,8 +60,24 @@ pub fn edit_todo(_req: Request, _ctx: web.Context, id: String) -> Response {
   }
 }
 
+/// Handles the creation of a new todo item from a submitted form.
+///
+/// This function:
+/// - Extracts form data from the incoming HTTP request.
+/// - Logs all form field names and values for debugging purposes.
+/// - Attempts to retrieve the "todo-title" field from the form data.
+/// - Validates that the todo title is not empty; if it is, logs an error and returns a bad request response.
+/// - If the title is valid, inserts the new todo into the database and logs the operation.
+/// - On success, redirects the user to the "/todos" page and sets a cookie.
+/// - On failure (e.g., missing or empty title), returns a bad request response.
+///
+/// # Parameters
+/// - `req`: The HTTP request containing the form data.
+/// - `_ctx`: The web context (unused).
+///
+/// # Returns
+/// - A `Response` that either redirects to the todos list on success or returns a bad request on failure.
 pub fn post_create_todo(req: Request, _ctx: web.Context) -> Response {
-  // let assert Ok(conn) = db.open_db_conn()
   use form <- wisp.require_form(req)
   list.map(form.values, fn(pair) {
     let #(name, value) = pair
@@ -113,6 +130,39 @@ pub fn delete_todo_route(
       wisp.log_error(
         "Error deleting todo with ID " <> id <> ": " <> err.message,
       )
+      wisp.internal_server_error()
+    }
+  }
+}
+
+pub fn update_todo_route(
+  req: Request,
+  _ctx: web.Context,
+  id: String,
+) -> Response {
+  use form <- wisp.require_form(req)
+  list.map(form.values, fn(pair) {
+    let #(name, value) = pair
+    name <> ": " <> value
+  })
+  |> string.join(with: "\n")
+  |> wisp.log_info
+
+  let assert Ok(item_title) = list.key_find(form.values, "todo-title")
+
+  let item_completed = case list.key_find(form.values, "todo-completed") {
+    Ok(_) -> 1
+    Error(_) -> 0
+  }
+  let assert Ok(conn) = db.open_db_conn()
+  let result = db.update_todo(conn, id, item_title, item_completed)
+  case result {
+    Ok(_) -> {
+      wisp.redirect("/todos")
+      |> wisp.set_cookie(req, "todos", "todos", wisp.PlainText, 60 * 60 * 24)
+    }
+    Error(err) -> {
+      wisp.log_error("Error updating todo: " <> err.message)
       wisp.internal_server_error()
     }
   }

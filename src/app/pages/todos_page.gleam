@@ -100,7 +100,7 @@ pub fn todo_edit_form(todo_item: db.Todo) -> Element(t) {
       [
         class("todo-form"),
         attribute.method("POST"),
-        attribute.action("/todos/edit/" <> int.to_string(todo_item.id)),
+        attribute.action("/todos/update/" <> int.to_string(todo_item.id)),
       ],
       [
         html.div([class("mb-3")], [
@@ -126,9 +126,8 @@ pub fn todo_edit_form(todo_item: db.Todo) -> Element(t) {
             attribute.type_("checkbox"),
             attribute.id("todo-completed"),
             attribute.name("todo-completed"),
-            // If completed is 1, set the checkbox to checked
+            attribute.value(int.to_string(todo_item.completed)),
             attribute.checked(todo_item.completed == 1),
-            // If completed is 1, set the value to "1", otherwise "0"
           ]),
         ]),
         html.button([class("btn btn-primary")], [text("Update Todo")]),
