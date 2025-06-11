@@ -9,7 +9,7 @@ import gleam/string
 import lustre/element
 import wisp.{type Request, type Response}
 
-pub fn fetch_todos() -> Response {
+pub fn fetch_todos_route() -> Response {
   let assert Ok(conn) = db.open_db_conn()
   let todos_result = db.get_todos(conn)
   case todos_result {
@@ -30,7 +30,7 @@ pub fn fetch_todos() -> Response {
   }
 }
 
-pub fn edit_todo(_req: Request, _ctx: web.Context, id: String) -> Response {
+pub fn edit_todo_route(_req: Request, _ctx: web.Context, id: String) -> Response {
   let assert Ok(conn) = db.open_db_conn()
   let todo_result = db.get_todo(conn, id)
   case todo_result {
@@ -77,7 +77,7 @@ pub fn edit_todo(_req: Request, _ctx: web.Context, id: String) -> Response {
 ///
 /// # Returns
 /// - A `Response` that either redirects to the todos list on success or returns a bad request on failure.
-pub fn post_create_todo(req: Request, _ctx: web.Context) -> Response {
+pub fn create_todo_route(req: Request, _ctx: web.Context) -> Response {
   use form <- wisp.require_form(req)
   list.map(form.values, fn(pair) {
     let #(name, value) = pair
