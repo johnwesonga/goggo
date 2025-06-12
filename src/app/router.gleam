@@ -19,7 +19,7 @@ pub fn render_page(content: List(element.Element(t))) -> Response {
 
 // This module defines the routing logic for the web application.
 pub fn handle_request(req: Request, ctx: web.Context) -> Response {
-  use _req <- web.middleware(req)
+  use req <- web.middleware(req)
 
   case wisp.path_segments(req) {
     [] -> {
