@@ -99,7 +99,7 @@ pub fn create_todo_route(req: Request, _ctx: web.Context) -> Response {
         let assert Ok(_) = db.add_todo(item_title)
         wisp.log_info("Todo created successfully.")
 
-        wisp.ok()
+        wisp.created()
       }
     }
     Ok(Nil)
@@ -157,6 +157,7 @@ pub fn update_todo_route(
   let result = db.update_todo(conn, id, item_title, item_completed)
   case result {
     Ok(_) -> {
+      wisp.created()
       wisp.redirect("/todos")
       |> wisp.set_cookie(req, "todos", "todos", wisp.PlainText, 60 * 60 * 24)
     }

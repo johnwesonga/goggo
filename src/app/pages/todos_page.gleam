@@ -11,13 +11,6 @@ fn btn(variant: String, href: String, label: String) -> Element(t) {
   html.a([class("btn btn-sm " <> variant), attribute.href(href)], [text(label)])
 }
 
-fn form_field(label: String, input: Element(t)) -> Element(t) {
-  html.div([class("mb-3")], [
-    html.label([class("form-label")], [text(label)]),
-    input,
-  ])
-}
-
 pub fn layout_with_todos(todos: List(db.Todo)) -> Element(t) {
   let todos_content = todos_table(todos)
   layout([root(), todos_content])
