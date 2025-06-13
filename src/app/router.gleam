@@ -52,8 +52,8 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
       // Here you would handle deleting a todo item by its ID.
       delete_todo_route(req, ctx, id)
     }
-    // v1/todos
-    ["v1", "todos"] -> {
+    // /api/v1/todos
+    ["api", "v1", "todos"] -> {
       use <- wisp.require_method(req, http.Get)
       fetch_todos_route_v1(req, ctx)
     }
