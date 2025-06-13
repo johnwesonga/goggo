@@ -4,15 +4,17 @@ import gleam/string_tree
 import wisp
 
 pub type Context {
-  Context(todos: List(db.Todo))
+  Context(static_directory: String, todos: List(db.Todo))
 }
 
 pub fn middleware(
   req: wisp.Request,
+  ctx: Context,
   handle_request: fn(wisp.Request) -> wisp.Response,
 ) -> wisp.Response {
   let req = wisp.method_override(req)
   use <- wisp.log_request(req)
+  use <- wisp.serve_static(req, under: "/static", from: ctx.static_directory)
   use <- wisp.rescue_crashes
   use req <- wisp.handle_head(req)
   use <- default_responses

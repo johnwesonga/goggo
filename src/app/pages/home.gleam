@@ -1,12 +1,19 @@
 import lustre/attribute.{class}
 import lustre/element.{type Element, text}
-import lustre/element/html.{div, h1, p}
+import lustre/element/html.{div, h1, img, p}
 
 pub fn root() -> Element(t) {
   h1([], [text("Homepage")])
 }
 
 pub fn layout(elements: List(Element(t))) -> Element(t) {
+  let logo_image =
+    img([
+      attribute.src("/static/images/todo.png"),
+      attribute.alt("My Awesome Image"),
+      attribute.width(150),
+      attribute.height(150),
+    ])
   html.html([], [
     html.head([], [
       html.title([], "Goggo"),
@@ -21,7 +28,12 @@ pub fn layout(elements: List(Element(t))) -> Element(t) {
         ),
       ]),
     ]),
-    html.body([], [div([class("container")], elements)]),
+    html.body([], [
+      div([class("container")], [
+        div([class("logo")], [logo_image]),
+        div([class("row")], [div([class("col-md-12")], elements)]),
+      ]),
+    ]),
   ])
 }
 

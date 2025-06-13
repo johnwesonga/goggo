@@ -8,7 +8,7 @@ import wisp/wisp_mist
 pub fn main() {
   wisp.configure_logger()
   let secret_key = wisp.random_string(64)
-  let ctx = web.Context(todos: [])
+  let ctx = web.Context(static_directory: static_directory(), todos: [])
   let handler = router.handle_request(_, ctx)
   let assert Ok(_) =
     wisp_mist.handler(handler, secret_key)
@@ -19,4 +19,9 @@ pub fn main() {
 
   // Start the web server
   process.sleep_forever()
+}
+
+fn static_directory() {
+  let assert Ok(priv_directory) = wisp.priv_directory("app")
+  priv_directory <> "/static"
 }
