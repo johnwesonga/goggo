@@ -2,9 +2,11 @@ import app/db
 import app/pages/home
 import app/pages/todos_page
 import app/web
+import gleam/json
 import gleam/list
 import gleam/result
 import gleam/string
+import gleam/string_tree
 import lustre/element
 import wisp.{type Request, type Response}
 
@@ -166,4 +168,38 @@ pub fn update_todo_route(
       wisp.internal_server_error()
     }
   }
+}
+
+pub fn fetch_todos_route_v1(_req: Request, _ctx: web.Context) -> Response {
+  let assert Ok(conn) = db.open_db_conn()
+  let todos_result = db.get_todos(conn)
+  case todos_result {
+    Ok(todos) -> {
+      let todos_json = todos_to_json(todos) |> string_tree.from_string
+      wisp.json_response(todos_json, 200)
+    }
+    Error(err) -> {
+      wisp.log_error("Error fetching todos: " <> err.message)
+      wisp.response(500)
+      |> wisp.set_header("Content-Type", "application/json")
+      // Handle the error when fetching todos
+    }
+  }
+}
+
+fn todos_to_json(items: List(db.Todo)) -> String {
+  "["
+  <> items
+  |> list.map(item_to_json)
+  |> string.join(",")
+  <> "]"
+}
+
+fn item_to_json(item: db.Todo) -> String {
+  json.object([
+    #("id", json.int(item.id)),
+    #("title", json.string(item.title)),
+    #("completed", json.int(item.completed)),
+  ])
+  |> json.to_string
 }

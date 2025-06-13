@@ -1,7 +1,7 @@
 import app/pages/home
 import app/routes/todos_routes.{
   create_todo_route, delete_todo_route, edit_todo_route, fetch_todos_route,
-  update_todo_route,
+  fetch_todos_route_v1, update_todo_route,
 }
 import app/web
 import gleam/http
@@ -51,6 +51,11 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
       use <- wisp.require_method(req, http.Get)
       // Here you would handle deleting a todo item by its ID.
       delete_todo_route(req, ctx, id)
+    }
+    // v1/todos
+    ["v1", "todos"] -> {
+      use <- wisp.require_method(req, http.Get)
+      fetch_todos_route_v1(req, ctx)
     }
 
     ["internal-server-error"] -> wisp.internal_server_error()
