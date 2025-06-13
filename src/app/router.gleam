@@ -1,7 +1,7 @@
 import app/pages/home
 import app/routes/todos_routes.{
-  create_todo_route, delete_todo_route, edit_todo_route, fetch_todos_route,
-  fetch_todos_route_v1, update_todo_route,
+  create_todo_route, delete_todo_route, edit_todo_route, fetch_todo_route_v1,
+  fetch_todos_route, fetch_todos_route_v1, update_todo_route,
 }
 import app/web
 import gleam/http
@@ -56,6 +56,12 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
     ["api", "v1", "todos"] -> {
       use <- wisp.require_method(req, http.Get)
       fetch_todos_route_v1(req, ctx)
+    }
+
+    // /api/v1/todos/{id}
+    ["api", "v1", "todos", id] -> {
+      use <- wisp.require_method(req, http.Get)
+      fetch_todo_route_v1(req, ctx, id)
     }
 
     ["internal-server-error"] -> wisp.internal_server_error()

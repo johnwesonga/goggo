@@ -90,7 +90,7 @@ pub fn get_todos_old() -> Result(List(Todo), sqlight.Error) {
 pub fn get_todos(conn: sqlight.Connection) -> Result(List(Todo), sqlight.Error) {
   let todos =
     sqlight.query(
-      "SELECT * FROM todos ORDER BY id DESC",
+      "SELECT id, title, completed FROM todos ORDER BY id DESC",
       on: conn,
       with: [],
       expecting: todo_decoder(),
@@ -133,7 +133,8 @@ pub fn get_todo(
   conn: sqlight.Connection,
   id: String,
 ) -> Result(List(Todo), sqlight.Error) {
-  let sql = "SELECT * FROM todos WHERE id = ? ORDER BY id DESC"
+  let sql =
+    "SELECT id, title, completed FROM todos WHERE id = ? ORDER BY id DESC"
   wisp.log_info("Querying for todo with ID: " <> id <> " SQL: " <> sql)
   // Ensure the ID is a valid integer
   let todo_item =

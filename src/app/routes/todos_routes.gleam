@@ -187,6 +187,27 @@ pub fn fetch_todos_route_v1(_req: Request, _ctx: web.Context) -> Response {
   }
 }
 
+pub fn fetch_todo_route_v1(
+  _req: Request,
+  _ctx: web.Context,
+  id: String,
+) -> Response {
+  let assert Ok(conn) = db.open_db_conn()
+  let todos_result = db.get_todo(conn, id)
+  case todos_result {
+    Ok(todos) -> {
+      let todos_json = todos_to_json(todos) |> string_tree.from_string
+      wisp.json_response(todos_json, 200)
+    }
+    Error(err) -> {
+      wisp.log_error("Error fetching todos: " <> err.message)
+      wisp.response(500)
+      |> wisp.set_header("Content-Type", "application/json")
+      // Handle the error when fetching todos
+    }
+  }
+}
+
 fn todos_to_json(items: List(db.Todo)) -> String {
   "["
   <> items
