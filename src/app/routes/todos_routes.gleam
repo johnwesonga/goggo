@@ -159,7 +159,6 @@ pub fn update_todo_route(
   let result = db.update_todo(conn, id, item_title, item_completed)
   case result {
     Ok(_) -> {
-      wisp.created()
       wisp.redirect("/todos")
       |> wisp.set_cookie(req, "todos", "todos", wisp.PlainText, 60 * 60 * 24)
     }
@@ -175,8 +174,9 @@ pub fn fetch_todos_route_v1(_req: Request, _ctx: web.Context) -> Response {
   let todos_result = db.get_todos(conn)
   case todos_result {
     Ok(todos) -> {
-      let todos_json = todos_to_json(todos) |> string_tree.from_string
-      wisp.json_response(todos_json, 200)
+      todos_to_json(todos)
+      |> string_tree.from_string
+      |> wisp.json_response(200)
     }
     Error(err) -> {
       wisp.log_error("Error fetching todos: " <> err.message)
@@ -196,8 +196,9 @@ pub fn fetch_todo_route_v1(
   let todos_result = db.get_todo(conn, id)
   case todos_result {
     Ok(todos) -> {
-      let todos_json = todos_to_json(todos) |> string_tree.from_string
-      wisp.json_response(todos_json, 200)
+      todos_to_json(todos)
+      |> string_tree.from_string
+      |> wisp.json_response(200)
     }
     Error(err) -> {
       wisp.log_error("Error fetching todos: " <> err.message)

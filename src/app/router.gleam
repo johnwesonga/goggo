@@ -64,6 +64,12 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
       fetch_todo_route_v1(req, ctx, id)
     }
 
+    // /api/v1/todos/{id}/delete
+    ["api", "v1", "todos", id, "delete"] -> {
+      use <- wisp.require_method(req, http.Delete)
+      delete_todo_route(req, ctx, id)
+    }
+
     ["internal-server-error"] -> wisp.internal_server_error()
     ["unprocessable-entity"] -> wisp.unprocessable_entity()
     ["method-not-allowed"] -> wisp.method_not_allowed([])
